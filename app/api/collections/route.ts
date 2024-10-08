@@ -20,7 +20,7 @@ export const POST = async (req: NextRequest) => {
         const existingCollection = await Collection.findOne({ title });
 
         if (existingCollection) {
-            return new NextResponse("Collection already exists", { status: 400 });
+            return new NextResponse("Collection already", { status: 400 });
         }
 
         if (!title || !image) {
