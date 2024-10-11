@@ -6,21 +6,17 @@ const collectionSchema = new mongoose.Schema({
         required: true,
         unique: true,
     },
-    description: String,
+    description: {
+        type: String,
+    },
     image: {
         type: String,
         required: true,
     },
-    products: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Product', // Reference the model by name instead of importing
-        }
-    ],
     categories: [
         { 
             type: mongoose.Schema.Types.ObjectId, 
-            ref: 'Category', // Reference the model by name instead of importing
+            ref: 'Category', 
         }
     ], 
     createdAt: {

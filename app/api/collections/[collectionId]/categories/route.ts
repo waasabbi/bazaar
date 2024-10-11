@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { connectToDB } from '@/lib/mongodb'
+import { connectToDB } from '@/lib/mongoDB'
 import { ObjectId } from 'mongodb'
 import Collection from '@/lib/models/Collection'
 import Category from '@/lib/models/Category'

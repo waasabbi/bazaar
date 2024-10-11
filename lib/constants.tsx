@@ -13,6 +13,11 @@ import {
       label: "Dashboard",
     },
     {
+      url: "/dashboard",
+      icon: <LayoutDashboard />,
+      label: "Dashboard 4 Real",
+    },
+    {
       url: "/collections",
       icon: <Shapes />,
       label: "Collections",
