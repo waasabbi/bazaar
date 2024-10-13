@@ -1,6 +1,6 @@
-'use client'
+'use client';
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -8,125 +8,111 @@ import {
   FormItem,
   FormLabel,
   FormMessage
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from 'react'
-import { useForm } from "react-hook-form"
-import toast from "react-hot-toast"
-import { z } from "zod"
-import ImageUpload from "../custom ui/ImageUpload"
-import { Separator } from "../ui/separator"
-import { Textarea } from "../ui/textarea"
-import { ProductType, CollectionType } from "@/lib/types"
-import Select from 'react-select'
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter, useParams } from "next/navigation";
+import { useEffect, useState } from 'react';
+import { useForm, useFieldArray } from "react-hook-form";
+import toast from "react-hot-toast";
+import { z } from "zod";
+import ImageUpload from "../custom ui/ImageUpload";
+import { Separator } from "../ui/separator";
+import { Textarea } from "../ui/textarea";
+import Select from 'react-select';
 
 const formSchema = z.object({
-  collection: z.string().nonempty("Collection is required"),
-  title: z.string().min(2).max(20),
+  name: z.string().min(2).max(50),
   description: z.string().min(2).max(500).trim(),
-  media: z.array(z.string()),
-  category: z.string().nonempty("Category is required"),
-  price: z.coerce.number().min(0.1),
-})
+  media: z.array(z.string()), // Array of image URLs
+  price: z.coerce.number().min(0.1), // Coerce to number
+  sizes: z.array(z.object({
+    size: z.string().min(1), 
+    stock: z.coerce.number().min(0) // Coerce to number
+  })),
+  colors: z.array(z.object({
+    colorName: z.string().min(1),
+    colorCode: z.string().optional(),
+    stock: z.coerce.number().min(0) // Coerce to number
+  })),
+  unitsInStock: z.coerce.number().min(0), // Coerce to number
+  dimensions: z.object({
+    length: z.coerce.number().optional(), // Coerce to number
+    width: z.coerce.number().optional(),  // Coerce to number
+    height: z.coerce.number().optional(), // Coerce to number
+    weight: z.coerce.number().optional(), // Coerce to number
+  }),
+});
 
-interface ProductFormProps {
-  initialData?: ProductType | null
-}
+export default function ProductForm() {
+  const router = useRouter();
+  const params = useParams(); // Get collectionId and categoryId from params
+  const { collectionId, categoryId } = params;
 
-export default function ProductForm({ initialData }: ProductFormProps) {
-  const router = useRouter()
-  const [loading, setLoading] = useState(false)
-  const [collectionOptions, setCollectionOptions] = useState<{ value: string; label: string }[]>([])
-  const [categoryOptions, setCategoryOptions] = useState<{ value: string; label: string }[]>([])
+  const [loading, setLoading] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      collection: initialData?.collections?.[0]?._id || "",
-      title: initialData?.title || "",
-      description: initialData?.description || "",
-      media: initialData?.media || [],
-      category: initialData?.category || "",
-      price: initialData?.price || 0,
-    },
-  })
-
-  useEffect(() => {
-    const fetchCollections = async () => {
-      try {
-        const res = await fetch("/api/collections")
-        if (!res.ok) throw new Error("Failed to fetch collections")
-        const data = await res.json()
-        const collections = data.map((collection: CollectionType) => ({
-          value: collection._id,
-          label: collection.title,
-        }))
-        setCollectionOptions(collections)
-      } catch (error) {
-        console.error("Failed to fetch collections:", error)
-        toast.error("Failed to fetch collections")
+      name: "",
+      description: "",
+      media: [],
+      price: 0,
+      sizes: [{ size: "", stock: 0 }], // Default size and stock
+      colors: [{ colorName: "", colorCode: "", stock: 0 }], // Default color
+      unitsInStock: 0,
+      dimensions: {
+        length: undefined,
+        width: undefined,
+        height: undefined,
+        weight: undefined
       }
     }
+  });
 
-    fetchCollections()
-  }, [])
+  const { fields: sizeFields, append: appendSize, remove: removeSize } = useFieldArray({
+    control: form.control,
+    name: 'sizes'
+  });
 
-  useEffect(() => {
-    const fetchCategories = async (collectionId: string) => {
-      if (!collectionId) return;
-      try {
-        const res = await fetch(`/api/collections/${collectionId}/categories`);
-        if (!res.ok) throw new Error("Failed to fetch categories");
-        const data = await res.json();
-        
-        // Assuming the response includes _id and title
-        const categories = data.map((category: { _id: string; title: string }) => ({
-          value: category, // Use the ObjectId as value
-          label: category, // Show the title in the select dropdown
-        }));
-        
-        setCategoryOptions(categories);
-      } catch (error) {
-        console.error("Failed to fetch categories:", error);
-        toast.error("Failed to fetch categories");
-      }
-        
-   };
-   
-
-    const collectionId = form.watch('collection')
-    if (collectionId) {
-      fetchCategories(collectionId)
-    }
-  }, [form.watch('collection')])
+  const { fields: colorFields, append: appendColor, remove: removeColor } = useFieldArray({
+    control: form.control,
+    name: 'colors'
+  });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      setLoading(true)
-      const res = await fetch("/api/products", {
+      setLoading(true);
+
+      // Add collectionId and categoryId to the payload
+      const payload = {
+        ...values,
+        collectionId,
+        categoryId,
+      };
+
+      const res = await fetch(`/api/collections/${collectionId}/categories/${categoryId}/products`, {
         method: "POST",
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(values),
-      })
+        body: JSON.stringify(payload),
+      });
 
       if (res.ok) {
-        toast.success("Product created")
-        router.push("/products")
+        toast.success("Product created");
+        router.push(`/collections/${collectionId}/categories/${categoryId}/products`);
       } else {
-        const errorData = await res.json()
-        toast.error(`Failed to create product: ${errorData.message || res.statusText}`)
+        const errorData = await res.json();
+        toast.error(`Failed to create product: ${errorData.message || res.statusText}`);
       }
     } catch (err) {
-      console.log("[products_POST] Error: ", err)
-      toast.error("Something went wrong! Please try again.")
+      console.error("[products_POST] Error: ", err);
+      toast.error("Something went wrong! Please try again.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="p-10">
@@ -134,39 +120,22 @@ export default function ProductForm({ initialData }: ProductFormProps) {
       <Separator className="bg-grey-1 mt-4 mb-7" />
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          {/* Name */}
           <FormField
             control={form.control}
-            name="collection"
+            name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-black">Collection</FormLabel>
+                <FormLabel className="text-black">Name</FormLabel>
                 <FormControl>
-                  <Select
-                    options={collectionOptions}
-                    value={collectionOptions.find(option => option.value === field.value)}
-                    onChange={(selectedOption) => field.onChange(selectedOption?.value)}
-                    className="text-black"
-                  />
+                  <Input placeholder="Name" className="text-black" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="title"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-black">Title</FormLabel>
-                <FormControl>
-                  <Input placeholder="Title" className="text-black" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
+          {/* Description */}
           <FormField
             control={form.control}
             name="description"
@@ -181,6 +150,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
             )}
           />
 
+          {/* Media Upload */}
           <FormField
             control={form.control}
             name="media"
@@ -199,6 +169,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
             )}
           />
 
+          {/* Price */}
           <FormField
             control={form.control}
             name="price"
@@ -213,24 +184,157 @@ export default function ProductForm({ initialData }: ProductFormProps) {
             )}
           />
 
+          {/* Sizes */}
+          <div>
+            <FormLabel className="text-black">Sizes</FormLabel>
+            {sizeFields.map((item, index) => (
+              <div key={item.id} className="flex gap-2">
+                <FormField
+                  control={form.control}
+                  name={`sizes.${index}.size`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input placeholder="Size" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name={`sizes.${index}.stock`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input type="number" placeholder="Stock" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button onClick={() => removeSize(index)}>Remove</Button>
+              </div>
+            ))}
+            <Button onClick={() => appendSize({ size: '', stock: 0 })}>Add Size</Button>
+          </div>
+
+          {/* Colors */}
+          <div>
+            <FormLabel className="text-black">Colors</FormLabel>
+            {colorFields.map((item, index) => (
+              <div key={item.id} className="flex gap-2">
+                <FormField
+                  control={form.control}
+                  name={`colors.${index}.colorName`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input placeholder="Color Name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name={`colors.${index}.colorCode`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input placeholder="Color Code (Optional)" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name={`colors.${index}.stock`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input type="number" placeholder="Stock" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button onClick={() => removeColor(index)}>Remove</Button>
+              </div>
+            ))}
+            <Button onClick={() => appendColor({ colorName: '', colorCode: '', stock: 0 })}>Add Color</Button>
+          </div>
+
+          {/* Units in Stock */}
           <FormField
             control={form.control}
-            name="category"
+            name="unitsInStock"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-black">Category</FormLabel>
+                <FormLabel className="text-black">Total Units in Stock</FormLabel>
                 <FormControl>
-                  <Select
-                    options={categoryOptions}
-                    value={categoryOptions.find(option => option.value === field.value)}
-                    onChange={(selectedOption) => field.onChange(selectedOption?.value)}
-                    className="text-black"
-                  />
+                  <Input type="number" placeholder="Units in Stock" className="text-black" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+
+          {/* Dimensions */}
+          <div>
+            <FormLabel className="text-black">Dimensions (Optional)</FormLabel>
+            <div className="flex gap-4">
+              <FormField
+                control={form.control}
+                name="dimensions.length"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input type="number" placeholder="Length" className="text-black" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="dimensions.width"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input type="number" placeholder="Width" className="text-black" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="dimensions.height"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input type="number" placeholder="Height" className="text-black" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="dimensions.weight"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input type="number" placeholder="Weight" className="text-black" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
 
           <div className="flex gap-10">
             <Button type="submit" className="bg-blue-1 text-white" disabled={loading}>
@@ -238,13 +342,14 @@ export default function ProductForm({ initialData }: ProductFormProps) {
             </Button>
             <Button
               type="button"
-              onClick={() => router.push("/products")}
-              className="bg-blue-1 text-white">
+              onClick={() => router.push(`/collections/${collectionId}/categories/${categoryId}/products`)}
+              className="bg-blue-1 text-white"
+            >
               Discard
             </Button>
           </div>
         </form>
       </Form>
     </div>
-  )
+  );
 }

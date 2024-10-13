@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
 
 const categorySchema = new mongoose.Schema({
-  name: { 
+  title: { 
     type: String, 
     required: true, 
-    unique: true, // Ensures each category name is unique within the system
+    // unique: true, // Ensures each category name is unique within the system
   },
   description: { 
     type: String, 

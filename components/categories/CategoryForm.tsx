@@ -1,65 +1,64 @@
-"use client";
+'use client';
 
 import { Button } from "@/components/ui/button";
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useState } from 'react';
-import { useForm } from "react-hook-form";
-import toast from "react-hot-toast";
-import { z } from "zod";
-import ImageUpload from "../custom ui/ImageUpload";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
 import { Separator } from "../ui/separator";
-import { Textarea } from "../ui/textarea";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import toast from "react-hot-toast";
+import ImageUpload from "../custom ui/ImageUpload";
 
+// Updated form schema based on the backend
 const formSchema = z.object({
-    title: z.string().min(2).max(20),
-    description: z.string().min(2).max(500).trim(),
-    image: z.string().nonempty("Image is required"),
+    name: z.string().min(2, "Category name is required").max(20).nonempty("Name is required"),
+    description: z.string().optional(),
+    image: z.string().nonempty("Image URL is required"),
 });
 
-const CollectionForm = () => {
+const CategoryForm = ({ collectionId }: { collectionId: string }) => {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
 
+    // Initialize form
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            title: "",
+            name: "",
             description: "",
             image: "",
         },
     });
 
+    // Handle form submission
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         try {
             setLoading(true);
-            const res = await fetch("/api/collections", {
+            // Make POST request to create a new category
+            const res = await fetch(`/api/collections/${collectionId}/categories/`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify(values),
+                body: JSON.stringify({
+                    ...values,
+                    collection: collectionId, // Link the collectionId to the category
+                }),
             });
+
             if (res.ok) {
-                const collection = await res.json();
-                toast.success("Collection created");
-                router.push(`/collections/${collection._id}/categories`);
+                toast.success("Category created successfully");
+                router.push(`/collections/${collectionId}/categories`); // Redirect after success
             } else {
-                console.log(await res.json());
-                toast.error("Error! Please try again.");
+                const error = await res.json();
+                toast.error(error.error || "Error creating category");
             }
-        } catch (err) {
-            console.log("[collections_POST]", err);
-            toast.error("Error! Please try again.");
+        } catch (error) {
+            console.error("Error creating category:", error);
+            toast.error("Error creating category. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -67,20 +66,21 @@ const CollectionForm = () => {
 
     return (
         <div className="p-10">
-            <p className="text-heading2-bold text-black">Create Collection</p>
+            <p className="text-heading2-bold text-black">Add Category to Collection</p>
             <Separator className="bg-grey-1 mt-4 mb-7" />
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                    {/* Category Name */}
                     <FormField
                         control={form.control}
-                        name="title"
+                        name="name"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="text-black">Title</FormLabel>
+                                <FormLabel className="text-black">Category Name</FormLabel>
                                 <FormControl>
-                                    <Input 
-                                        placeholder="Title" 
-                                        {...field} 
+                                    <Input
+                                        placeholder="Category Name"
+                                        {...field}
                                         className="text-black"
                                     />
                                 </FormControl>
@@ -89,6 +89,7 @@ const CollectionForm = () => {
                         )}
                     />
 
+                    {/* Category Description */}
                     <FormField
                         control={form.control}
                         name="description"
@@ -96,10 +97,9 @@ const CollectionForm = () => {
                             <FormItem>
                                 <FormLabel className="text-black">Description</FormLabel>
                                 <FormControl>
-                                    <Textarea 
-                                        placeholder="Description" 
-                                        {...field} 
-                                        rows={5}
+                                    <Input
+                                        placeholder="Category Description"
+                                        {...field}
                                         className="text-black"
                                     />
                                 </FormControl>
@@ -108,6 +108,7 @@ const CollectionForm = () => {
                         )}
                     />
 
+                    {/* Category Image */}
                     <FormField
                         control={form.control}
                         name="image"
@@ -123,13 +124,14 @@ const CollectionForm = () => {
                     />
 
                     <div className="flex gap-6">
-                        <Button type="submit" className="bg-blue-1 text-white">
+                        <Button type="submit" className="bg-blue-1 text-white" disabled={loading}>
                             Submit
                         </Button>
                         <Button
                             type="button"
-                            onClick={() => router.push("/collections")}
-                            className="bg-red-1 text-red">
+                            onClick={() => router.push(`/collections/${collectionId}/categories`)}
+                            className="bg-red-1 text-red"
+                        >
                             Discard
                         </Button>
                     </div>
@@ -139,4 +141,4 @@ const CollectionForm = () => {
     );
 };
 
-export default CollectionForm;
+export default CategoryForm;

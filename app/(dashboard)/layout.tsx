@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "../globals.css";
-
-import LeftSideBar from "@/components/layout/LeftSideBar";
-import TopBar from "@/components/layout/topBar";
 import { ToasterProvider } from "@/lib/TosterProvider";
 import { ClerkProvider } from "@clerk/nextjs";
+import AdminPanelLayout from "@/components/admin-panel/admin-panel-layout";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -14,22 +12,23 @@ export const metadata: Metadata = {
   description: "Admin dashboard to manage UrbanBazaar data",
 };
 
-export default function RootLayout({
+export default function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
     <ClerkProvider>
-      <html lang="en">
-        <body className={inter.className}>
+      <html lang="en" className="dark">
+        <body className={`${inter.className} bg-white text-gray-800`}>
           <ToasterProvider />
-          <div className="flex max-lg:flex-col text-white">
-            <LeftSideBar />
-            <div className="flex-1">{children}</div>
-            <TopBar />
-          </div>
-
+          <AdminPanelLayout>
+            <div className="flex min-h-screen max-lg:flex-col">
+              <main className="flex-1 p-6 bg-white shadow-md border border-gray-300 rounded-lg">
+                {children}
+              </main>
+            </div>
+          </AdminPanelLayout>
         </body>
       </html>
     </ClerkProvider>
