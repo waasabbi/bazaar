@@ -1,32 +1,15 @@
 import mongoose from 'mongoose';
 
 const categorySchema = new mongoose.Schema({
-  title: { 
-    type: String, 
-    required: true, 
-    // unique: true, // Ensures each category name is unique within the system
-  },
-  description: { 
-    type: String, 
-    default: '' // Optional, with a default empty string for consistency
-  },
-  image: {
-    type: String,
-    required: true,
-  },
-  collection: { 
+  title: { type: String, required: true },  // Removed `unique: true`
+  description: String,
+  image: String,
+  collection: {  // Rename if needed to avoid conflict with Mongoose reserved keys
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'Collection', 
-    required: true 
+    required: true
   },
-  products: [
-    { 
-      type: mongoose.Schema.Types.ObjectId, 
-      ref: 'Product' 
-    }
-  ],
-}, { 
-  timestamps: true // Automatically adds createdAt and updatedAt fields
+  products: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
 });
 
 export default mongoose.models.Category || mongoose.model('Category', categorySchema);

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 import Product from "@/lib/models/Product";
 import { connectToDB } from "@/lib/mongoDB";
+import Category from "@/lib/models/Category";
 
 export const GET = async (req: NextRequest, { params }: { params: { collectionId: string, categoryId: string } }) => {
     try {
@@ -25,6 +26,7 @@ export const GET = async (req: NextRequest, { params }: { params: { collectionId
         return new NextResponse(JSON.stringify({ message: "Something went wrong!" }), { status: 500 });
     }
 };
+
 
 // POST /api/collections/[collectionId]/categories/[categoryId]/products
 export const POST = async (req: NextRequest, { params }: { params: { collectionId: string, categoryId: string } }) => {
@@ -58,7 +60,14 @@ export const POST = async (req: NextRequest, { params }: { params: { collectionI
         });
 
         // Save the product to the database
-        await newProduct.save();
+        const savedProduct = await newProduct.save();
+
+        // After saving the product, update the Category model to include this product
+        await Category.findByIdAndUpdate(
+            categoryId,
+            { $push: { products: savedProduct._id } },  // Add the product ID to the products array in the category
+            { new: true }  // Return the updated category document
+        );
 
         return new NextResponse(JSON.stringify({ message: "Product created successfully!" }), { status: 201 });
     } catch (error) {
@@ -66,3 +75,4 @@ export const POST = async (req: NextRequest, { params }: { params: { collectionI
         return new NextResponse(JSON.stringify({ message: "Something went wrong!" }), { status: 500 });
     }
 };
+

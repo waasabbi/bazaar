@@ -44,7 +44,7 @@ export function getMenuList(pathname: string): Group[] {
       groupLabel: "Contents",
       menus: [
         {
-          href: "",
+          href: "/collections",
           label: "Collections",
           icon: SquarePen,
           // submenus: [
