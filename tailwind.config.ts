@@ -8,17 +8,6 @@ const config: Config = {
 		"./app/**/*.{js,ts,jsx,tsx,mdx}",
 	],
 	theme: {
-    	// fontSize: {
-    	// 	'heading1-bold': [\n				"50px",\n				{\n					lineHeight: "100%",\n					fontWeight: "700",\n				},\n			],
-    	// 	'heading2-bold': [\n				"30px",\n				{\n					lineHeight: "100%",\n					fontWeight: "700",\n				},\n			],
-    	// 	'heading3-bold': [\n				"24px",\n				{\n					lineHeight: "100%",\n					fontWeight: "700",\n				},\n			],
-    	// 	'heading4-bold': [\n				"20px",\n				{\n					lineHeight: "100%",\n					fontWeight: "700",\n				},\n			],
-    	// 	'body-bold': [\n				"18px",\n				{\n					lineHeight: "100%",\n					fontWeight: "700",\n				},\n			],
-    	// 	'body-semibold': [\n				"18px",\n				{\n					lineHeight: "100%",\n					fontWeight: "600",\n				},\n			],
-    	// 	'body-medium': [\n				"18px",\n				{\n					lineHeight: "100%",\n					fontWeight: "500",\n				},\n			],
-    	// 	'base-bold': [\n				"16px",\n				{\n					lineHeight: "100%",\n					fontWeight: "600",\n				},\n			],
-    	// 	'base-medium': [\n				"16px",\n				{\n					lineHeight: "100%",\n					fontWeight: "500",\n				},\n			]
-    	// },
     	extend: {
     		colors: {
     			'white-1': '#F8F8F8',
@@ -27,7 +16,9 @@ const config: Config = {
     			'blue-1': '#005EBE',
     			'blue-2': '#E9F5FE',
     			'blue-3': '#F5F7F9',
-    			'red-1': '#FF0000'
+    			'red-1': '#FF0000',
+				'background': '#ffffff', // Or the color you want for 'bg-background'
+
     		},
     		keyframes: {
     			'accordion-down': {

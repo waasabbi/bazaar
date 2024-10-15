@@ -7,16 +7,16 @@ import {
 } from "lucide-react";
   
   export const navLinks = [
-    {
-      url: "/",
-      icon: <LayoutDashboard />,
-      label: "Dashboard",
-    },
-    {
-      url: "/dashboard",
-      icon: <LayoutDashboard />,
-      label: "Dashboard 4 Real",
-    },
+    // {
+    //   url: "/",
+    //   icon: <LayoutDashboard />,
+    //   label: "Dashboard",
+    // },
+    // {
+    //   url: "/dashboard",
+    //   icon: <LayoutDashboard />,
+    //   label: "Dashboard 4 Real",
+    // },
     {
       url: "/collections",
       icon: <Shapes />,

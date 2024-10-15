@@ -24,21 +24,21 @@ export function Sidebar() {
       <div
         onMouseEnter={() => setIsHover(true)}
         onMouseLeave={() => setIsHover(false)}
-        className="relative h-full flex flex-col px-3 py-4 overflow-y-auto shadow-md dark:shadow-zinc-800"
+        className="relative h-full flex flex-col px-3 py-4 overflow-y-auto shadow-md dark:shadow-zinc-800 no-underline"
       >
         <Button
           className={cn(
-            "transition-transform ease-in-out duration-300 mb-1",
+            "transition-transform ease-in-out duration-300 mb-1 no-underline ",
             !getOpenState() ? "translate-x-1" : "translate-x-0"
           )}
           variant="link"
           asChild
         >
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <PanelsTopLeft className="w-6 h-6 mr-1" />
+          <div className="flex items-center gap-2 no-underline">
+            {/* <PanelsTopLeft className="w-6 h-6 mr-1" /> */}
             <h1
               className={cn(
-                "font-bold text-lg whitespace-nowrap transition-[transform,opacity,display] ease-in-out duration-300",
+                "font-bold text-lg whitespace-nowrap transition-[transform,opacity,display] ease-in-out duration-300 no-underline",
                 !getOpenState()
                   ? "-translate-x-96 opacity-0 hidden"
                   : "translate-x-0 opacity-100"
@@ -46,7 +46,7 @@ export function Sidebar() {
             >
               Urban Bazaar
             </h1>
-          </Link>
+          </div>
         </Button>
         <Menu isOpen={getOpenState()} />
       </div>
